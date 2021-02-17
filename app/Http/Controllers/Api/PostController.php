@@ -3,11 +3,19 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Post as PostRequest;
+use App\Http\Resources\Post as PostResources;
+use App\Http\Resources\PostCollection;
 use App\Models\Post;
 use Illuminate\Http\Request;
 
 class PostController extends Controller
 {
+
+    public function __construct(Post $post)
+    {
+        $this->post = $post;
+    }
     /**
      * Display a listing of the resource.
      *
@@ -15,7 +23,9 @@ class PostController extends Controller
      */
     public function index()
     {
-        //
+        return response()->json(new PostCollection(
+            $this->post->orderBy('id', 'desc')->get()
+        ));
     }
 
     /**
@@ -24,9 +34,11 @@ class PostController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(PostRequest $request)
     {
-        //
+        $post = $this->post->create($request->all());
+
+        return response()->json(new PostResources($post), 201);
     }
 
     /**
@@ -37,6 +49,12 @@ class PostController extends Controller
      */
     public function show(Post $post)
     {
+        return response()->json(new PostResources($post));
+        // return [
+        //     'id' => $post->id,
+        //     'post_name' => strtoupper($post->title),
+        //     'post_body' => strtoupper(substr($post->body, 0, 240)) . ' . . .'
+        // ];
         //
     }
 
@@ -47,9 +65,11 @@ class PostController extends Controller
      * @param  \App\Models\Post  $post
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Post $post)
+    public function update(PostRequest $request, Post $post)
     {
-        //
+        $post->update($request->all());
+
+        return response()->json(new PostResources($post));
     }
 
     /**
@@ -60,6 +80,8 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
-        //
+        $post->delete();
+
+        return response()->json(null, 204);
     }
 }
